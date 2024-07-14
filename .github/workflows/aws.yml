@@ -36,4 +36,4 @@ jobs:
           aws s3 ls s3://$BUCKET_NAME
       - name: Upload files to S3
         run: |
-          aws s3 cp ./*.txt s3://$BUCKET_NAME --recursive
+          aws s3 cp . s3://$BUCKET_NAME --recursive --exclude "*" --include "*.txt"

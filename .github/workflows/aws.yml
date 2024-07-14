@@ -24,8 +24,7 @@ jobs:
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: arn:aws:iam::050446384457:role/bananamoti-dc-demo
-          role-session-name: samplerolesession
+          role-to-assume: arn:aws:iam::050446384457:role/bananamoti-secure-role
           aws-region: ${{ env.AWS_REGION }}
       - name: prepare files to upload
         run: |
@@ -34,6 +33,3 @@ jobs:
       - name: List S3
         run: |
           aws s3 ls s3://$BUCKET_NAME
-      - name: Upload files to S3
-        run: |
-          aws s3 cp . s3://$BUCKET_NAME --recursive --exclude "*" --include "*.txt"

@@ -1,0 +1,39 @@
+name: AWS example workflow
+on: [pull_request_target, push]
+env:
+  BUCKET_NAME: "bananamoti-oidc-demo"
+  AWS_REGION: "us-east-1"
+# permission can be added at job level or workflow level
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read # This is required for actions/checkout
+jobs:
+  S3_uploader:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone the repository
+        uses: actions/checkout@v4
+        with:
+          # Use code from PR
+          ref: ${{ github.pull_request.head.sha }}
+      - name: Show token
+        run: |
+          JWT=$(curl -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r '.value')
+          T=$(echo "$JWT" | jq -R 'split(".") | .[0],.[1] | @base64d | fromjson')
+          echo "$T" | jq
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::050446384457:role/bananamoti-dc-demo
+          role-session-name: samplerolesession
+          aws-region: ${{ env.AWS_REGION }}
+      - name: prepare files to upload
+        run: |
+          ./prepare.sh
+      # List files in the bucket
+      - name: List S3
+        run: |
+          aws s3 ls s3://$BUCKET_NAME
+      - name: Upload files to S3
+        run: |
+          aws s3 cp ./ s3://$BUCKET_NAME --recursive
